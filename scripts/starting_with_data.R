@@ -1,5 +1,8 @@
 # https://grofwildjacht.inbo.be/
 
+# https://github.com/inbo/git-course
+
+#http://pad.software-carpentry.org/2018-06-12-bru-datacarpentry-inbo-elixir
 
 library(tidyverse)
 
@@ -50,9 +53,14 @@ library(lubridate)
 my_date <- ymd("2015-01-01")
 str(my_date)
 
-
+# paste
+eerste_dag <- "01-01"
 
 surveys$date <- ymd(paste(surveys$year, surveys$month, surveys$day, sep = "-"))
+surveys$datum <- ymd(paste(surveys$year, eerste_dag, sep = "-"))
+
+my_date <- floor_date(as_date("2012", format = "%Y", tz = "UTC"), unit = "year")
+year(my_date)
 
 # check missing values
 
@@ -64,6 +72,83 @@ is_missing_date
 date_columns <- c("year", "month", "day")
 missing_dates <- surveys[is_missing_date, date_columns]
 
+# visualisation
+download.file("https://ndownloader.figshare.com/files/11930600?private_link=fe0cd1848e06456e6f38",
+              "data/surveys_complete.csv")
+surveys_complete <- read_csv("data/surveys_complete.csv")
+
+ggplot(data = surveys_complete, aes(x = weight, y = hindfoot_length, colour = species_id)) +
+  geom_point(alpha = 0.1)
 
 
+ggplot(surveys_complete, aes(x = species_id, y = weight)) +
+  geom_jitter(alpha = 0.3, aes(colour = factor(plot_id))) +
+  geom_boxplot()
+  
+ggplot(surveys_complete, aes(x = species_id, y = weight)) +
+  scale_y_log10() +
+  geom_jitter(alpha = 0.3, aes(colour = factor(plot_id))) +
+  geom_violin()
 
+ggplot(surveys_complete, aes(x = species_id, y = hindfoot_length)) +
+  scale_y_log10() +
+  geom_boxplot() +
+  geom_jitter(aes(colour = factor(plot_id)))
+
+
+yearly_count <- surveys_complete %>%
+  group_by(year, species_id) %>%
+  count()
+
+ggplot(yearly_count, aes(x = year, y = n)) +
+  geom_line() +
+  facet_wrap(~species_id, ncol = 4, scales = "free")
+
+
+yearly_sex_count <- surveys_complete %>%
+  group_by(year, species_id, sex) %>%
+  count()
+
+ggplot(yearly_sex_count, aes(x = year, y = n, colour = sex)) +
+  theme_bw() +
+  theme(panel.grid = element_blank(),
+        text = element_text(size = 16),
+        axis.text.x = element_text(colour = "skyblue", size = 12, angle = 90, hjust = 0.5)) +
+  geom_line() +
+  facet_wrap(~ species_id) +
+  labs(title = "Observed species over time",
+       subtitle = "Training",
+       caption = "data carpentry",
+       x = "Year of observation",
+       y = "Number of observations")
+
+
+grey_theme <-  theme(panel.grid = element_blank(),
+                     text = element_text(size = 16),
+                     axis.text.x = element_text(colour = "skyblue", size = 12, angle = 90, hjust = 0.5))
+
+p <- ggplot(yearly_sex_count, aes(x = year, y = n, colour = sex)) +
+  theme_bw() +
+  grey_theme +
+  geom_line() +
+  facet_wrap(~ species_id) +
+  labs(title = "Observed species over time",
+       subtitle = "Training",
+       caption = "data carpentry",
+       x = "Year of observation",
+       y = "Number of observations")
+p
+ggsave("plots/my_plot.png", width = 15, height = 10, dpi = 300)
+
+d <- starwars
+
+ggplot(d, aes(x = height, y = mass, colour = homeworld)) +
+  geom_point(shape = 16) 
+  
+  
+  
+  
+  
+  
+  
+  
